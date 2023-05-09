@@ -86,35 +86,39 @@ def main():
         st.session_state["reference"] = []
     if "past" not in st.session_state:
         st.session_state["past"] = []
+    if "chat" not in st.session_state:
+        st.session_state["chat"] = False
 
     st.set_page_config(page_title="Ask your PDF")
     st.header("Ask your docs 💬")
 
-    st.sidebar.title("Sidebar")
-    counter_placeholder = st.sidebar.empty()
-    counter_placeholder.write(f"Upload your PDF Here 👇")
+    st.sidebar.title("Load your PDF")
+    # counter_placeholder = st.sidebar.empty()
+    # counter_placeholder.write(f"Upload your PDF Here 👇")
 
     pdf = st.sidebar.file_uploader("Upload your PDF", type="pdf")
     # extract the text
     if pdf is not None:
         db = create_db_from_pdf(pdf)
         st.sidebar.success("Successfully generated indexes.")
+        st.session_state["chat"] = True
 
     # container for chat history
     response_container = st.container()
     # container for text box
     container = st.container()
 
-    with container:
-        with st.form(key="my_form", clear_on_submit=True):
-            user_input = st.text_area("Ask a question:", key="input", height=100)
-            submit_button = st.form_submit_button(label="Submit")
+    if st.session_state["chat"]:
+        with container:
+            with st.form(key="my_form", clear_on_submit=True):
+                user_input = st.text_area("Ask a question:", key="input", height=100)
+                submit_button = st.form_submit_button(label="Submit")
 
-        if submit_button and user_input:
-            response, docs = get_response_from_query(db, query=user_input, k=3)
-            st.session_state["past"].append(user_input)
-            st.session_state["generated"].append(response)
-            st.session_state["reference"].append(docs)
+            if submit_button and user_input:
+                response, docs = get_response_from_query(db, query=user_input, k=3)
+                st.session_state["past"].append(user_input)
+                st.session_state["generated"].append(response)
+                st.session_state["reference"].append(docs)
 
     if st.session_state["generated"]:
         with response_container:
